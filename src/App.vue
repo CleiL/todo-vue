@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 
 const estado = reactive({
   filtro: 'todas',
+  tarefaTemp: '',
   tarefas: [
     {
       titulo: 'Estudar ES6',
@@ -23,6 +24,31 @@ const getTarefasPendentes = () => {
   return estado.tarefas.filter(tarefa => !tarefa.finalizada)
 }
 
+const getTarefasFinalizadas = () => {
+  return estado.tarefas.filter(tarefa => tarefa.finalizada)
+}
+
+const getTarefasFiltradas = () => {
+  const { filtro } = estado;
+  switch (filtro) {
+    case 'pendentes':
+      return getTarefasPendentes();
+    case 'finalizadas':
+      return getTarefasFinalizadas();
+    default:
+      return estado.tarefas
+  }
+}
+
+const cadastraTarefa = () => {
+  const tarefavaNova = {
+    titulo: estado.tarefaTemp,
+    finalizada: false,
+  }
+  estado.tarefas.push(tarefavaNova);
+  estado.tarefaTemp = '';
+}
+
 </script>
 
 <template>
@@ -32,10 +58,10 @@ const getTarefasPendentes = () => {
       <p>Você possui {{ getTarefasPendentes().length }} tarefas pendentes</p>
     </header>
   </div>
-  <form>
+  <form @submit.prevent="cadastraTarefa">
     <div class="row">
       <div class="col">
-        <input type="text" placeholder="Digite aqui a descrição da tarefa" class="form-control" >
+        <input :value="estado.tarefaTemp" @change="evento => estado.tarefaTemp = evento.target.value" required type="text" placeholder="Digite aqui a descrição da tarefa" class="form-control" >
       </div>
       <div class="col-md-2">
         <button type="submit" class="btn btn-primary">Cadastrar</button>
@@ -51,8 +77,8 @@ const getTarefasPendentes = () => {
   </form>
   {{ estado.filtro }}
   <ul class="list-group mt-4">
-    <li class="list-group-item" v-for="tarefa in estado.tarefas">
-      <input type="checkbox" :checked="tarefa.finalizada" :id="tarefa.titulo">
+    <li class="list-group-item" v-for="tarefa in getTarefasFiltradas()">
+      <input @change="evento =>tarefa.finalizada = evento.target.checked" type="checkbox" :checked="tarefa.finalizada" :id="tarefa.titulo">
       <label :class="{ done: tarefa.finalizada }" class="ms-3" :for="tarefa.titulo">
         {{tarefa.titulo}}
       </label>
